@@ -1,4 +1,4 @@
-City,ConnectedCity	
+City,ConnectedCity
 Silverstone City, Valley City
 Silverstone City, Storm City
 Silverstone City, Forest City
@@ -19,5 +19,3 @@ Island City, Hill City
 River City, Hill City
 Sunflower Fields City, River City
 Tesla Capital, Forest City
-Tesla Capital, Capital City
-Mountain City, Capital City

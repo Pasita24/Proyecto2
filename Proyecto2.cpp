@@ -2,13 +2,14 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <set>
+#include <queue>
 
 using namespace std;
 
-// Función para construir el grafo a partir del archivo de texto
-void buildGraphFromFile(const string& filename, unordered_map<string, vector<string>>& adjacencyList, unordered_map<string, unordered_map<string, int>>& adjacencyMatrix) {
+void buildGraphFromFile(const string& filename, unordered_map<string, unordered_set<string>>& adjacencyList, vector<string>& cities) {
     ifstream file(filename);
     if (!file.is_open()) {
         cout << "No se pudo abrir el archivo." << endl;
@@ -16,63 +17,83 @@ void buildGraphFromFile(const string& filename, unordered_map<string, vector<str
     }
 
     string line;
-    // Leer la primera línea que contiene los encabezados
+    // Ignorar la primera línea que contiene los encabezados
     getline(file, line);
 
+    set<string> uniqueCities; // Para almacenar nombres únicos de ciudades y conexiones
     while (getline(file, line)) {
         istringstream iss(line);
-        string city, neighbor;
-        if (getline(iss, city, ',') && getline(iss, neighbor)) {
-            adjacencyList[city].push_back(neighbor);
-            adjacencyList[neighbor].push_back(city); // Bidireccional
+        string city, connection;
+        if (getline(iss, city, ',') && getline(iss, connection)) {
+            adjacencyList[city].insert(connection); // Solo insertar la conexión como arista
 
-            // Construir la matriz de adyacencia
-            adjacencyMatrix[city][neighbor] = 1;
-            adjacencyMatrix[neighbor][city] = 1;
+            uniqueCities.insert(city); // Agregar la ciudad pero no la conexión a la lista única de ciudades
         }
     }
 
     file.close();
+
+    cities.assign(uniqueCities.begin(), uniqueCities.end()); // Asignar los nombres de las ciudades a la lista
 }
-// Función para imprimir la matriz de adyacencia
-void printAdjacencyMatrix(const unordered_map<string, unordered_map<string, int>>& adjacencyMatrix, const vector<string>& cities) {
-    cout << "Matriz de adyacencia del grafo:" << endl;
 
-    // Imprimir la primera fila (nombres de las ciudades)
-    cout << "    ";
-    for (const auto& city : cities) {
-        cout << city << " ";
-    }
-    cout << endl;
-
-    for (const auto& city1 : cities) {
-        cout << city1 << " | "; // Imprimir el nombre de la ciudad al principio de la fila
-        for (const auto& city2 : cities) {
-            // Comprobar si hay conexión y mostrar 1 o 0
-            int connection = adjacencyMatrix.at(city1).count(city2) > 0 ? 1 : 0;
-            cout << connection << " ";
+void printCityConnections(const unordered_map<string, unordered_set<string>>& adjacencyList) {
+    int counter = 1;
+    for (const auto& city : adjacencyList) {
+        cout << counter << ".- " << city.first;
+        for (const auto& connection : city.second) {
+            cout << " -> " << connection;
         }
         cout << endl;
+        counter++;
+    }
+}
+
+bool hasConnection(const unordered_map<string, unordered_set<string>>& adjacencyList, const string& vertex, const string& edge) {
+    for (const auto& city : adjacencyList) {
+        if (city.first == vertex) {
+            for (const auto& connection : city.second) {
+                if (connection == edge) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void printCitiesAndConnections(const unordered_map<string, unordered_set<string>>& adjacencyList) {
+    cout << "Lista de Ciudades y Conexiones:" << endl;
+
+    for (const auto& city : adjacencyList) {
+        cout << "Ciudad: " << city.first << endl;
+        cout << "Conexiones: ";
+        for (const auto& connection : city.second) {
+            cout << connection << " ";
+        }
+        cout << "\n\n";
     }
 }
 
 int main() {
     string filename = "Ciudades.txt"; // Nombre del archivo con las ciudades y conexiones
 
-    unordered_map<string, vector<string>> cityAdjacencyList;
-    unordered_map<string, unordered_map<string, int>> cityAdjacencyMatrix;
-
-    buildGraphFromFile(filename, cityAdjacencyList, cityAdjacencyMatrix);
-
-    // Obtener la lista de ciudades
+    unordered_map<string, unordered_set<string>> cityAdjacencyList;
     vector<string> cities;
-    for (const auto& city : cityAdjacencyList) {
-        cities.push_back(city.first);
-    }
 
-    // Imprimir la matriz de adyacencia
-    printAdjacencyMatrix(cityAdjacencyMatrix, cities);
+    buildGraphFromFile(filename, cityAdjacencyList, cities);
+
+    // Imprimir la lista de ciudades con sus conexiones
+    printCitiesAndConnections(cityAdjacencyList);
+
+    // Verificar si hay conexión entre dos ciudades específicas
+    string cityA = "Silverstone City";
+    string cityB = "Valley City";
+
+    if (hasConnection(cityAdjacencyList, cityA, cityB)) {
+        cout << "Hay conexión entre " << cityA << " y " << cityB << endl;
+    } else {
+        cout << "No hay conexión entre " << cityA << " y " << cityB << endl;
+    }
 
     return 0;
 }
-
