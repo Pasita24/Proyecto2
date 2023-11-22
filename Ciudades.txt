@@ -19,3 +19,23 @@ Island City, Hill City
 River City, Hill City
 Sunflower Fields City, River City
 Tesla Capital, Forest City
+Valley City, Silverstone City
+Storm City, Silverstone City
+Forest City, Silverstone City
+Storm City, Valley City
+Forest City, Valley City
+Forest City, Storm City
+Mountain City, Capital City
+Desert City, Capital City
+Cliff City, Capital City
+Desert City, Mountain City
+Cliff City, Mountain City
+Cliff City, Desert City
+Island City, Coast City
+Hill City, Coast City
+River City, Coast City
+Coast City, Island City
+Hill City, Island City
+Hill City, River City
+River City, Sunflower Fields City
+Forest City, Tesla Capital
