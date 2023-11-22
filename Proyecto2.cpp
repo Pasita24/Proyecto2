@@ -2,75 +2,91 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
+#include <limits>
 
 using namespace std;
 
 class DirectedGraph {
 private:
-    int numVertices;
-    vector<vector<int>> adjList;
-    unordered_map<int, string> cityMap;
+    unordered_map<string, int> cityIndexMap;
+    vector<vector<int>> adjacencyMatrix;
+    vector<string> cities;
 
 public:
-    DirectedGraph(int vertices) : numVertices(vertices) {
-        adjList.resize(numVertices);
+    DirectedGraph() = default;
+
+    void addEdge(const string& src, const string& dest, int weight) {
+        int srcIndex = getIndex(src);
+        int destIndex = getIndex(dest);
+
+        adjacencyMatrix[srcIndex][destIndex] = weight;
+        cout << "Conexion agregada: " << src << " -> " << dest << " con peso: " << weight << endl;
     }
 
-    void addEdge(int src, int dest) {
-        if (src >= 0 && src < numVertices && dest >= 0 && dest < numVertices) {
-            adjList[src].push_back(dest);
+    int getIndex(const string& city) {
+        if (cityIndexMap.find(city) == cityIndexMap.end()) {
+            int newIndex = cities.size();
+            cities.push_back(city);
+            cityIndexMap[city] = newIndex;
+            adjacencyMatrix.emplace_back(cities.size(), 0);
+            for (auto& row : adjacencyMatrix) {
+                row.resize(cities.size(), 0);
+            }
+            return newIndex;
         }
+        return cityIndexMap[city];
     }
 
-    void addCity(int index, const string& cityName) {
-        cityMap[index] = cityName;
-    }
-
-    void printGraph() {
-        cout << "Ciudades y conexiones:" << endl << endl;
-        for (int i = 0; i < numVertices; ++i) {
-            if (!adjList[i].empty()) {
-                cout << cityMap[i] << " conectado a: ";
-                for (const auto& neighbor : adjList[i]) {
-                    cout << cityMap[neighbor] << " ";
+    void printDetailedGraph() {
+        cout << "Ciudades y sus conexiones:" << endl;
+        for (size_t i = 0; i < cities.size(); ++i) {
+            cout << cities[i] << " conectada a: ";
+            bool hasConnection = false;
+            for (size_t j = 0; j < cities.size(); ++j) {
+                if (adjacencyMatrix[i][j] != 0) {
+                    cout << cities[j] << " (peso: " << adjacencyMatrix[i][j] << ") ";
+                    hasConnection = true;
                 }
-                cout << endl;
             }
+            if (!hasConnection) {
+                cout << "Ninguna conexion";
+            }
+            cout << endl;
         }
     }
 
-    int getNumVertices() const {
-        return numVertices;
-    }
+     vector<int> dijkstra(const string& startCity, const string& endCity) {
+        const int MAX_VALUE = numeric_limits<int>::max();
+        int start = getIndex(startCity);
+        int end = getIndex(endCity);
 
-    void incrementNumVertices() {
-        ++numVertices;
-    }
+        vector<int> distances(cities.size(), MAX_VALUE);
+        vector<bool> discovered(cities.size(), false);
+        distances[start] = 0;
 
-    bool hasConnection(const string& cityA, const string& cityB) {
-        int indexA = -1, indexB = -1;
+        for (int k = 0; k < cities.size(); ++k) {
+            int minDistance = MAX_VALUE;
+            int minIndex = -1;
 
-        for (const auto& pair : cityMap) {
-            if (pair.second == cityA) {
-                indexA = pair.first;
-            } else if (pair.second == cityB) {
-                indexB = pair.first;
+            for (int i = 0; i < cities.size(); ++i) {
+                if (distances[i] < minDistance && !discovered[i]) {
+                    minDistance = distances[i];
+                    minIndex = i;
+                }
+            }
+
+            if (minDistance == MAX_VALUE || minIndex == end) break;
+            discovered[minIndex] = true;
+
+            for (int i = 0; i < cities.size(); ++i) {
+                if (adjacencyMatrix[minIndex][i] != 0 && distances[i] > distances[minIndex] + adjacencyMatrix[minIndex][i]) {
+                    distances[i] = distances[minIndex] + adjacencyMatrix[minIndex][i];
+                }
             }
         }
 
-        if (indexA == -1 || indexB == -1) {
-            return false; // Si alguna de las ciudades no existe en el grafo
-        }
-
-        for (const auto& neighbor : adjList[indexA]) {
-            if (neighbor == indexB) {
-                return true; // Si hay conexión entre las ciudades
-            }
-        }
-
-        return false; // Si no hay conexión entre las ciudades
+        return distances;
     }
 };
 
@@ -79,49 +95,30 @@ int main() {
     if (!file.is_open()) {
         cout << "No se pudo abrir el archivo." << endl;
         return 1;
+    } else {
+        cout << "Archivo abierto correctamente." << endl;
     }
 
-    string line;
-    getline(file, line); // Ignora la primera línea
+    DirectedGraph graph;
 
-    unordered_map<string, int> cityIndexMap;
-    DirectedGraph graph(0); // Grafo inicializado sin vértices
+    string line;
+    getline(file, line); // Ignorar la primera línea
 
     while (getline(file, line)) {
         istringstream iss(line);
         string city, connection;
         if (getline(iss, city, ',') && getline(iss, connection)) {
-            if (cityIndexMap.find(city) == cityIndexMap.end()) {
-                cityIndexMap[city] = graph.getNumVertices(); // Asigna un índice a la ciudad
-                graph.addCity(graph.getNumVertices(), city); // Agrega la ciudad al grafo
-                graph.incrementNumVertices(); // Incrementa el contador de vértices
-            }
-            if (cityIndexMap.find(connection) == cityIndexMap.end()) {
-                cityIndexMap[connection] = graph.getNumVertices(); // Asigna un índice a la ciudad
-                graph.addCity(graph.getNumVertices(), connection); // Agrega la ciudad al grafo
-                graph.incrementNumVertices(); // Incrementa el contador de vértices
-            }
-
-            int cityIndex = cityIndexMap[city];
-            int connectionIndex = cityIndexMap[connection];
-
-            graph.addEdge(cityIndex, connectionIndex); // Agrega la conexión al grafo
+            int weight = 1; // Peso por defecto
+            graph.addEdge(city, connection, weight); // Agregar la conexión al grafo
         }
     }
 
     file.close();
 
-    graph.printGraph();
+    graph.printDetailedGraph(); // Imprimir lista detallada de ciudades y conexiones
 
-    // Verificar conexión entre dos ciudades
-    string cityA = "Silverstone City";
-    string cityB = "Valley City";
-
-    if (graph.hasConnection(cityA, cityB)) {
-        cout << "\nHay conexión entre " << cityA << " y " << cityB << endl;
-    } else {
-        cout << "\nNo hay conexión entre " << cityA << " y " << cityB << endl;
-    }
+    // Realizar otras operaciones con el grafo, como Dijkstra para encontrar el camino más corto
+    // graph.dijkstra(startCity, endCity);
 
     return 0;
 }
