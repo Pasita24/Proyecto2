@@ -56,37 +56,11 @@ public:
         }
     }
 
-     vector<int> dijkstra(const string& startCity, const string& endCity) {
-        const int MAX_VALUE = numeric_limits<int>::max();
-        int start = getIndex(startCity);
-        int end = getIndex(endCity);
+    bool hasConnection(const string& startCity, const string& endCity) {
+        int startIndex = getIndex(startCity);
+        int endIndex = getIndex(endCity);
 
-        vector<int> distances(cities.size(), MAX_VALUE);
-        vector<bool> discovered(cities.size(), false);
-        distances[start] = 0;
-
-        for (int k = 0; k < cities.size(); ++k) {
-            int minDistance = MAX_VALUE;
-            int minIndex = -1;
-
-            for (int i = 0; i < cities.size(); ++i) {
-                if (distances[i] < minDistance && !discovered[i]) {
-                    minDistance = distances[i];
-                    minIndex = i;
-                }
-            }
-
-            if (minDistance == MAX_VALUE || minIndex == end) break;
-            discovered[minIndex] = true;
-
-            for (int i = 0; i < cities.size(); ++i) {
-                if (adjacencyMatrix[minIndex][i] != 0 && distances[i] > distances[minIndex] + adjacencyMatrix[minIndex][i]) {
-                    distances[i] = distances[minIndex] + adjacencyMatrix[minIndex][i];
-                }
-            }
-        }
-
-        return distances;
+        return adjacencyMatrix[startIndex][endIndex] != 0;
     }
 };
 
@@ -115,10 +89,16 @@ int main() {
 
     file.close();
 
-    graph.printDetailedGraph(); // Imprimir lista detallada de ciudades y conexiones
+    // graph.printDetailedGraph(); // Imprimir lista detallada de ciudades y conexiones
 
-    // Realizar otras operaciones con el grafo, como Dijkstra para encontrar el camino más corto
-    // graph.dijkstra(startCity, endCity);
+    // Verificar si hay conexión entre dos ciudades
+    string startCity = "Silverstone City";
+    string endCity = "Valley City";
+    if (graph.hasConnection(startCity, endCity)) {
+        cout << "Hay conexion entre " << startCity << " y " << endCity << endl;
+    } else {
+        cout << "No hay conexion entre " << startCity << " y " << endCity << endl;
+    }
 
     return 0;
 }
