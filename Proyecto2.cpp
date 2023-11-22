@@ -29,14 +29,48 @@ public:
     }
 
     void printGraph() {
-        cout << "Cities and their connections:" << endl;
+        cout << "Ciudades y conexiones:" << endl << endl;
         for (int i = 0; i < numVertices; ++i) {
-            cout << cityMap[i] << " connects to: ";
-            for (const auto& neighbor : adjList[i]) {
-                cout << cityMap[neighbor] << " ";
+            if (!adjList[i].empty()) {
+                cout << cityMap[i] << " conectado a: ";
+                for (const auto& neighbor : adjList[i]) {
+                    cout << cityMap[neighbor] << " ";
+                }
+                cout << endl;
             }
-            cout << endl;
         }
+    }
+
+    int getNumVertices() const {
+        return numVertices;
+    }
+
+    void incrementNumVertices() {
+        ++numVertices;
+    }
+
+    bool hasConnection(const string& cityA, const string& cityB) {
+        int indexA = -1, indexB = -1;
+
+        for (const auto& pair : cityMap) {
+            if (pair.second == cityA) {
+                indexA = pair.first;
+            } else if (pair.second == cityB) {
+                indexB = pair.first;
+            }
+        }
+
+        if (indexA == -1 || indexB == -1) {
+            return false; // Si alguna de las ciudades no existe en el grafo
+        }
+
+        for (const auto& neighbor : adjList[indexA]) {
+            if (neighbor == indexB) {
+                return true; // Si hay conexión entre las ciudades
+            }
+        }
+
+        return false; // Si no hay conexión entre las ciudades
     }
 };
 
@@ -47,44 +81,47 @@ int main() {
         return 1;
     }
 
-    unordered_map<string, int> cityIndexMap;
-    int index = 0;
     string line;
+    getline(file, line); // Ignora la primera línea
+
+    unordered_map<string, int> cityIndexMap;
+    DirectedGraph graph(0); // Grafo inicializado sin vértices
 
     while (getline(file, line)) {
         istringstream iss(line);
         string city, connection;
         if (getline(iss, city, ',') && getline(iss, connection)) {
             if (cityIndexMap.find(city) == cityIndexMap.end()) {
-                cityIndexMap[city] = index++;
+                cityIndexMap[city] = graph.getNumVertices(); // Asigna un índice a la ciudad
+                graph.addCity(graph.getNumVertices(), city); // Agrega la ciudad al grafo
+                graph.incrementNumVertices(); // Incrementa el contador de vértices
             }
             if (cityIndexMap.find(connection) == cityIndexMap.end()) {
-                cityIndexMap[connection] = index++;
+                cityIndexMap[connection] = graph.getNumVertices(); // Asigna un índice a la ciudad
+                graph.addCity(graph.getNumVertices(), connection); // Agrega la ciudad al grafo
+                graph.incrementNumVertices(); // Incrementa el contador de vértices
             }
-        }
-    }
 
-    file.clear();
-    file.seekg(0);
-
-    DirectedGraph graph(index);
-
-    while (getline(file, line)) {
-        istringstream iss(line);
-        string city, connection;
-        if (getline(iss, city, ',') && getline(iss, connection)) {
             int cityIndex = cityIndexMap[city];
             int connectionIndex = cityIndexMap[connection];
 
-            graph.addEdge(cityIndex, connectionIndex);
-            graph.addCity(cityIndex, city);
-            graph.addCity(connectionIndex, connection);
+            graph.addEdge(cityIndex, connectionIndex); // Agrega la conexión al grafo
         }
     }
 
     file.close();
 
     graph.printGraph();
+
+    // Verificar conexión entre dos ciudades
+    string cityA = "Silverstone City";
+    string cityB = "Valley City";
+
+    if (graph.hasConnection(cityA, cityB)) {
+        cout << "\nHay conexión entre " << cityA << " y " << cityB << endl;
+    } else {
+        cout << "\nNo hay conexión entre " << cityA << " y " << cityB << endl;
+    }
 
     return 0;
 }
