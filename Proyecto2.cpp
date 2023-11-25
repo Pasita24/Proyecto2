@@ -175,6 +175,7 @@ public:
         }
         return nullptr;
     }
+    
 
     private:
         // Función para insertar un aprendiz bajo un maestro en el árbol general
