@@ -1,61 +1,56 @@
 #include <iostream>
+#include <map>
 #include <vector>
-#include <climits>
 
 using namespace std;
 
-const int MAX_VALUE = INT_MAX;
-const int N = 5;
+// Estructura para el nodo del árbol
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
 
-void dijkstra(vector<vector<int>>& graph, int start, int end) {
-    vector<int> distance(N, MAX_VALUE);
-    vector<bool> visited(N, false);
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
 
-    distance[start] = 0;
-
-    for (int i = 0; i < N; ++i) {
-        int minDistance = MAX_VALUE;
-        int minIndex = -1;
-
-        for (int j = 0; j < N; ++j) {
-            if (!visited[j] && distance[j] < minDistance) {
-                minDistance = distance[j];
-                minIndex = j;
-            }
-        }
-
-        if (minIndex == -1) break;
-
-        visited[minIndex] = true;
-
-        for (int j = 0; j < N; ++j) {
-            if (!visited[j] && graph[minIndex][j] && distance[minIndex] != MAX_VALUE &&
-                distance[minIndex] + graph[minIndex][j] < distance[j]) {
-                distance[j] = distance[minIndex] + graph[minIndex][j];
-            }
-        }
+// Función para insertar un elemento en el árbol binario de búsqueda
+void bstInsert(Node*& root, int element, Node* parent = nullptr) {
+    if (root == nullptr) {
+        root = new Node(element);
+        cout << element << " Insertado" << endl;
+        return;
     }
 
-    if (distance[end] == MAX_VALUE) {
-        cout << "No hay camino desde " << start << " hasta " << end << endl;
-    } else {
-        cout << "El camino más corto desde " << start << " hasta " << end << " es " << distance[end] << endl;
+    if (element < root->data) {
+        bstInsert(root->left, element, root);
+    } else if (element > root->data) {
+        bstInsert(root->right, element, root);
     }
 }
 
+// Función para imprimir el árbol
+void printTree(Node* root) {
+    if (root == nullptr) return;
+
+    printTree(root->left);
+    cout << root->data << " ";
+    printTree(root->right);
+}
+
 int main() {
-    vector<vector<int>> graph = {
-        {0, 1, 0, 0, 1},
-        {1, 0, 1, 1, 0},
-        {0, 1, 0, 1, 0},
-        {0, 1, 1, 0, 1},
-        {1, 0, 0, 1, 0}
-    };
+    vector<int> elements = {5, 8, 10, 3, 1, 6, 9, 7, 2, 0, 4};
 
-    int start = 0;
-    int end = 3;
+    Node* Root = nullptr;
+    Root = new Node(elements[0]);
+    cout << elements[0] << " Insertado como raíz del árbol" << endl;
 
-    dijkstra(graph, start, end);
+    for (size_t i = 1; i < elements.size(); i++) {
+        bstInsert(Root, elements[i]);
+    }
+
+    cout << "Estado final del árbol:" << endl;
+    printTree(Root);
+    cout << endl;
 
     return 0;
 }

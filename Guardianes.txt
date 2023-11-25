@@ -15,7 +15,7 @@ Nanna,60,Baldr,Hill City
 Valkyrie,74,Heimdall,Coast City
 Bragi,83,Heimdall,Desert City
 Fenrir,73,Bragi,Mountain City
-Loki,68,Valkyrie,Coast City
+Loki,90,Valkyrie,Coast City
 Mjolnir,71,Angrboda,Capital City
 Odin,62,Fenrir,Mountain City
 Hermod,82,Bragi,Sunflower Fields City
