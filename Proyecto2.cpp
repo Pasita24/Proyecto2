@@ -141,21 +141,39 @@ public:
         }
         cout << endl;
     }
-    void printGuardiansInCity(const string& city) {
+    void addGuardianToCity(const string& city, const Guardian& guardian) {
+        if (cityGuardianTrees.find(city) == cityGuardianTrees.end()) {
+            cityGuardianTrees[city] = new GuardianTreeNode(guardian);
+        } else {
+            addApprentice(cityGuardianTrees[city], new GuardianTreeNode(guardian));
+        }
+    }
+
+    void printGuardiansInCity(const string& city, const vector<Guardian>& guardians) {
         cout << "Guardianes en la ciudad de " << city << ":" << endl;
 
-        GuardianTreeNode* cityMasterTree = getMasterTreeOfCity(city);
-        if (cityMasterTree) {
-            cout << "Maestro: " << cityMasterTree->guardian.name << endl;
+        if (cityGuardianTrees.find(city) != cityGuardianTrees.end()) {
+            GuardianTreeNode* cityGuardianTree = cityGuardianTrees[city];
 
-            for (const auto& apprentice : cityMasterTree->apprentices) {
-                cout << "Aprendiz: " << apprentice->guardian.name << endl;
+            // Imprimir el maestro y sus aprendices en la ciudad
+            cout << "Guardian: " << cityGuardianTree->guardian.name << endl;
+            for (const auto& apprentice : cityGuardianTree->apprentices) {
+                cout << "- " << apprentice->guardian.name << endl;
+            }
+
+            // Imprimir los maestros de los aprendices en la misma ciudad
+            for (const auto& apprentice : cityGuardianTree->apprentices) {
+                for (const auto& guardian : guardians) {
+                    if (guardian.name == apprentice->guardian.master && guardian.city == city) {
+                        cout << "Maestro de " << apprentice->guardian.name << ": " << guardian.name << endl;
+                        break;
+                    }
+                }
             }
         } else {
             cout << "No hay guardianes en esta ciudad." << endl;
         }
     }
-
     vector<string> getConnectedCities(const string& city) {
         vector<string> connectedCities;
         int cityIndex = getIndex(city);
@@ -170,29 +188,25 @@ public:
 
         return connectedCities;
     }
-   void addGuardianToCity(const string& city, const Guardian& guardian) {
-    GuardianTreeNode* guardianNode = new GuardianTreeNode(guardian);
-
-    if (guardian.master.empty()) {
-        if (cityMasterTrees.find(city) == cityMasterTrees.end()) {
-            cityMasterTrees[city] = guardianNode;
-        } else {
-            addApprentice(cityMasterTrees[city], guardianNode);
-        }
-    } else {
-        if (cityGuardianTrees.find(city) == cityGuardianTrees.end()) {
-            cityGuardianTrees[city] = new GuardianTreeNode(guardian);
-        }
-        addApprentice(cityGuardianTrees[city], guardianNode);
-    }
-}
-
+  
      // Función para obtener el árbol general de guardianes de una ciudad específica
     GuardianTreeNode* getMasterTreeOfCity(const string& city) {
         if (cityMasterTrees.find(city) != cityMasterTrees.end()) {
             return cityMasterTrees[city];
         }
         return nullptr;
+    }
+    bool isConnected(const string& cityA, const string& cityB) {
+        int indexA = getIndex(cityA);
+        int indexB = getIndex(cityB);
+
+        if (adjacencyMatrix[indexA][indexB] != 0 || adjacencyMatrix[indexB][indexA] != 0) {
+            cout << cityA << " y " << cityB << " están conectadas directamente." << endl;
+            return true;
+        } else {
+            cout << cityA << " y " << cityB << " no están conectadas directamente." << endl;
+            return false;
+        }
     }
     
     
@@ -279,6 +293,7 @@ int main() {
      bool exitGame = false;
      //Variables
      int availableGuardiansCount = 0; 
+     
 
     while (!exitGame) {
         cout << "------------Bienvenido al Juego de Guardianes-----------------" << endl;
@@ -339,7 +354,16 @@ int main() {
                 } else {
                     cout << "Numero de ciudad invalido." << endl;
                 }
-            } else {
+                
+            } else if (kingdomChoice == 3) {
+                string cityA, cityB;
+                cout << "Ingresa el nombre de la primera ciudad: ";
+                cin >> cityA;
+                cout << "Ingresa el nombre de la segunda ciudad: ";
+                cin >> cityB;
+
+                graph.isConnected(cityA, cityB); 
+           } else {
                 cout << "Opcion invalida." << endl;
             }
             break;
@@ -394,12 +418,12 @@ int main() {
                                 
                                 if (currentGuardianIndex == chosenGuardianIndex) {
                                     Guardian chosenGuardian = guardian;
-                                    cout << "Has elegido al guardian: " << chosenGuardian.name << endl;
-                                    cout << "<------------------------------------------------------->"<<endl;
+                                    cout << "Has elegido al guardian: " << chosenGuardian.name << endl; 
                                     // Mostrar las características del guardian elegido
                                     bool exitBattleMenu = false;
 
                                     while (!exitBattleMenu) {
+                                        cout << "<------------------------------------------------------->"<<endl;
                                         cout << "Detalles del guardian elegido:" << endl;
                                         cout << "Nombre: " << chosenGuardian.name << endl;
                                         cout << "Nivel de Poder: " << chosenGuardian.powerLevel << endl;
@@ -452,33 +476,9 @@ int main() {
                                                     cout << "Número de ciudad invalido." << endl;
                                                 }
                                                 break;
-                                           case 2:
-                                                // Mostrar los aprendices y maestros de la ciudad
-                                                cout << "Ciudades disponibles:" << endl;
-                                                for (size_t i = 0; i < graph.getNumberOfCities(); ++i) {
-                                                    cout << i + 1 << ". " << graph.getCityName(i) << endl;
-                                                }
-
-                                                int cityIndex;
-                                                cout << "Elige el número de la ciudad para ver a sus guardianes: ";
-                                                cin >> cityIndex;
-
-                                                if (cityIndex >= 1 && cityIndex <= graph.getNumberOfCities()) {
-                                                    string cityToCheck = graph.getCityName(cityIndex - 1);
-                                                    graph.printGuardiansInCity(cityToCheck);
-
-                                                    // Mostrar el grafo de la ciudad seleccionada
-                                                    cout << "Grafo de guardianes en la ciudad de " << cityToCheck << ":" << endl;
-                                                    vector<string> connectedCities = graph.getConnectedCities(cityToCheck);
-
-                                                    for (const auto& connectedCity : connectedCities) {
-                                                        cout << cityToCheck << " <-> " << connectedCity << endl;
-                                                    }
-                                                } else {
-                                                    cout << "Número de ciudad inválido." << endl;
-                                                }
+                                          case 2:
+                                                graph.printGuardiansInCity(chosenGuardian.city, guardians);
                                                 break;
-
                                             case 3:
                                                 // Lógica para la batalla
                                                 break;
