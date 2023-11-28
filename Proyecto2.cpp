@@ -82,7 +82,42 @@ public:
 
         cout << "Conexion agregada: " << src << " <-> " << dest << " con peso: " << weight << endl;
     }
-    
+    Node* deleteNodeFromBST(Node* root, const Guardian& guardian) {
+    if (root == nullptr) {
+        return root;
+    } else if (guardian.powerLevel < root->guardian.powerLevel) {
+        root->left = deleteNodeFromBST(root->left, guardian);
+    } else if (guardian.powerLevel > root->guardian.powerLevel) {
+        root->right = deleteNodeFromBST(root->right, guardian);
+    } else {
+        if (root->left == nullptr && root->right == nullptr) {
+            delete root;
+            root = nullptr;
+        } else if (root->left == nullptr) {
+            Node* temp = root;
+            root = root->right;
+            delete temp;
+        } else if (root->right == nullptr) {
+            Node* temp = root;
+            root = root->left;
+            delete temp;
+        } else {
+            Node* temp = findMin(root->right);
+            root->guardian = temp->guardian;
+            root->right = deleteNodeFromBST(root->right, temp->guardian);
+        }
+    }
+    return root;
+    }
+    Node* findMin(Node* root) {
+    if (root == nullptr) {
+        return nullptr;
+    }
+    while (root->left != nullptr) {
+        root = root->left;
+    }
+    return root;
+    }
 
     size_t getNumberOfCities() const {
         return cities.size();
@@ -219,51 +254,66 @@ public:
         }
     }
     
-    void printGuardiansInCityWithOpponent(const string& city, const vector<Guardian>& guardians) {
-    cout << "Guardianes en la ciudad de " << city << ":" << endl;
+   void printGuardiansInCityWithOpponent(const string& city, const vector<Guardian>& guardians) {
+        cout << "Guardianes en la ciudad de " << city << ":" << endl;
 
-    if (cityGuardianTrees.find(city) != cityGuardianTrees.end()) {
-        GuardianTreeNode* cityGuardianTree = cityGuardianTrees[city];
+        Guardian chosenOpponent;
+        if (cityGuardianTrees.find(city) != cityGuardianTrees.end()) {
+            GuardianTreeNode* cityGuardianTree = cityGuardianTrees[city];
 
-        // Mostrar el maestro
-        cout << "Maestro de la ciudad:" << endl;
-        for (const auto& guardian : guardians) {
-            if (guardian.name == cityGuardianTree->guardian.master && guardian.city == city) {
-                cout << "- " << guardian.name << " - Nivel de Poder: " << guardian.powerLevel << endl;
-                break;
+            // Imprimir el maestro y sus aprendices en la ciudad
+            cout << "Maestro: " << cityGuardianTree->guardian.name << endl;
+            for (const auto& apprentice : cityGuardianTree->apprentices) {
+                cout << "- " << apprentice->guardian.name << endl;
             }
-        }
 
-        // Mostrar los aprendices
-        cout << "Aprendices en la ciudad:" << endl;
-        for (const auto& apprentice : cityGuardianTree->apprentices) {
-            cout << "- " << apprentice->guardian.name << " - Nivel de Poder: " << apprentice->guardian.powerLevel << endl;
-        }
+            cout << "-------------------------------------" << endl;
+            cout << "Guardianes disponibles para la batalla:" << endl;
 
-        cout << "-------------------------------------" << endl;
-        cout << "Elige el numero del guardian para la batalla: ";
-        int chosenOpponentIndex;
-        cin >> chosenOpponentIndex;
+            // Mostrar la lista de guardianes disponibles con su índice
+            cout << "1) " << cityGuardianTree->guardian.name << "(Maestro)" << endl;
+            int index = 2;
+            for (const auto& apprentice : cityGuardianTree->apprentices) {
+                cout << index << ") " << apprentice->guardian.name << "(Aprendiz)" << endl;
+                index++;
+            }
 
-        int totalGuardiansInCity = cityGuardianTree->apprentices.size() + 1; // Aprendices + Maestro
-        if (chosenOpponentIndex >= 1 && chosenOpponentIndex <= totalGuardiansInCity) {
-            // El usuario elige pelear con el maestro
-            if (chosenOpponentIndex == 1) {
-                cout << "Has elegido pelear contra el Maestro: " << cityGuardianTree->guardian.master << "!" << endl;
-                // Lógica para pelear con el maestro
+            cout << "Elige el numero del guardian para la batalla: ";
+            int chosenOpponentIndex;
+            cin >> chosenOpponentIndex;
+
+            int totalGuardiansInCity = cityGuardianTree->apprentices.size() + 1; 
+            if (chosenOpponentIndex >= 1 && chosenOpponentIndex <= totalGuardiansInCity) {
+                if (chosenOpponentIndex == 1) {
+                    // Lógica para pelear con el Maestro
+                    cout << "Has elegido pelear contra el Maestro: " << cityGuardianTree->guardian.name << "!" << endl;
+                    chosenOpponent = cityGuardianTree->guardian;
+                } else {
+                    // Lógica para pelear con el Aprendiz
+                    chosenOpponent = cityGuardianTree->apprentices[chosenOpponentIndex - 2]->guardian;
+                    cout << "¡Has elegido pelear contra: " << chosenOpponent.name << "!" << endl;
+                }
+
+                if (chosenOpponentIndex > 1) {
+                    // Verificar si el oponente elegido es un aprendiz o maestro
+                    if (chosenOpponent.master == cityGuardianTree->guardian.name) {
+                        cout << "¡Estás peleando contra el Maestro!" << endl;
+                        cout << "No puedes pelear contra el maestro de un aprendiz. Selecciona de nuevo." << endl;
+                    } else {
+                        cout << "¡Estás peleando contra un Aprendiz!" << endl;
+                    }
+                }
+
             } else {
-                // El usuario elige pelear con uno de los aprendices
-                Guardian chosenOpponent = cityGuardianTree->apprentices[chosenOpponentIndex - 2]->guardian;
-                cout << "¡Has elegido pelear contra: " << chosenOpponent.name << "!" << endl;
-                // Lógica para pelear con el aprendiz seleccionado
+                cout << "Numero de guardián no válido." << endl;
             }
         } else {
-            cout << "Número de guardián no válido." << endl;
+            cout << "No hay guardianes en esta ciudad." << endl;
         }
-    } else {
-        cout << "No hay guardianes en esta ciudad." << endl;
     }
-}
+
+
+
 
     private:
         // Función para insertar un aprendiz bajo un maestro en el árbol general
@@ -444,17 +494,9 @@ int main() {
 
             for (const auto& guardian : guardians) {
                 // Verificar que el guardián no sea maestro y su poder no esté entre 90 y 99
-                bool isMaster = false;
                 bool isInRange = guardian.powerLevel >= 90 && guardian.powerLevel <= 99;
 
-                for (const auto& otherGuardian : guardians) {
-                    if (otherGuardian.master == guardian.name) {
-                        isMaster = true;
-                        break;
-                    }
-                }
-
-                if (!isMaster && !isInRange) {
+                if (!isInRange) {
                     cout << availableGuardiansCount + 1 << ". " << guardian.name << endl;
                     availableGuardiansCount++;
                 }
@@ -470,18 +512,9 @@ int main() {
                 if (chosenGuardianIndex >= 1 && chosenGuardianIndex <= availableGuardiansCount) {
                     int currentGuardianIndex = 0;
                     for (const auto& guardian : guardians) {
-                        // Verificar nuevamente que el guardián elegido cumpla las condiciones
-                        bool isMaster = false;
                         bool isInRange = guardian.powerLevel >= 90 && guardian.powerLevel <= 99;
 
-                        for (const auto& otherGuardian : guardians) {
-                            if (otherGuardian.master == guardian.name) {
-                                isMaster = true;
-                                break;
-                            }
-                        }
-
-                        if (!isMaster && !isInRange) {
+                        if (!isInRange) {
                             currentGuardianIndex++;
 
                             if (currentGuardianIndex == chosenGuardianIndex) {
@@ -513,13 +546,12 @@ int main() {
                                         vector<string> connectedCities;
                                         int availableOpponents = 0; 
                                         string cityForBattle; 
-                                        Guardian chosenOpponent; // Declarada fuera del switch para acceso global
+                                        Guardian chosenOpponent; 
                                         int probability;
                                         int battleResult;
 
                                         switch (battleChoice) {
                                             case 1:
-                                                            // Lógica para viajar a otra ciudad
                                                 cout << "Te encuentras en la ciudad de " << chosenGuardian.city << ", que es la ciudad del guardian." << endl;
             
                                                 // Obtener las conexiones de la ciudad actual
@@ -536,7 +568,7 @@ int main() {
                                                 if (cityToTravel >= 1 && cityToTravel <= connectedCities.size()) {
                                                     string newCity = connectedCities[cityToTravel - 1];
                                                     cout << "Viajando a la ciudad de " << newCity << "..." << endl;
-                                                    chosenGuardian.city = newCity; // Cambiar la ciudad del guardian
+                                                    chosenGuardian.city = newCity; 
 
                                                     for (auto& guardian : guardians) {
                                                     if (guardian.name == chosenGuardian.name) {
@@ -558,12 +590,26 @@ int main() {
                                                 probability = rand() % 10 + 1;
 
                                                 if (probability <= 4) {
-                                                    if (chosenOpponent.powerLevel >= 90 && chosenOpponent.powerLevel <= 99) {
+                                                     // Determinar si es maestro o aprendiz y asignar puntos
+                                                    int battleResult = 0;
+                                                    if (chosenOpponent.apprentices.empty()) {
+                                                        // Es un aprendiz
+                                                        battleResult = -1; // Restar un punto en la derrota
+                                                        cout << "Has vencido a un Aprendiz. Ganaste 3 puntos." << endl;
+                                                    } else {
+                                                        // Es un maestro
                                                         battleResult = 5; // 5 puntos al vencer a un maestro
                                                         cout << "¡Has vencido a un Maestro! Ganaste 5 puntos." << endl;
-                                                    } else {
-                                                        battleResult = 3; // 3 puntos al vencer a un aprendiz
-                                                        cout << "Has vencido a un Aprendiz. Ganaste 3 puntos." << endl;
+                                                    }
+                                                    if (battleResult != 0) {
+                                                        actualizarNivelDePoder(chosenGuardian, battleResult);
+                                                        cout << "El poder del guardian " << chosenGuardian.name << " ahora es: " << chosenGuardian.powerLevel << endl;
+
+                                                        // Eliminar el nodo del árbol de búsqueda binaria
+                                                        powerTree = graph.deleteNodeFromBST(powerTree, chosenGuardian);
+
+                                                        // Insertar el nodo actualizado con el nuevo nivel de poder
+                                                        bstInsert(powerTree, chosenGuardian);
                                                     }
                                                 } else {
                                                     battleResult = -1;
@@ -578,7 +624,7 @@ int main() {
                                                 break;
                                             case 4:
                                             exitBattleMenu = true;
-                                            break; // Salir del bucle del menú de batalla
+                                            break; 
                                             default:
                                                 cout << "Opcion no valida." << endl;
                                                 break;
