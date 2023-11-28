@@ -592,14 +592,16 @@ int main() {
                                                 if (probability <= 4) {
                                                      // Determinar si es maestro o aprendiz y asignar puntos
                                                     int battleResult = 0;
-                                                    if (chosenOpponent.apprentices.empty()) {
-                                                        // Es un aprendiz
-                                                        battleResult = -1; // Restar un punto en la derrota
-                                                        cout << "Has vencido a un Aprendiz. Ganaste 3 puntos." << endl;
-                                                    } else {
-                                                        // Es un maestro
-                                                        battleResult = 5; // 5 puntos al vencer a un maestro
-                                                        cout << "¡Has vencido a un Maestro! Ganaste 5 puntos." << endl;
+                                                     if (probability <= 4) {
+                                                        if (!chosenOpponent.apprentices.empty()) {
+                                                            // Es un maestro
+                                                            battleResult = 5;
+                                                            cout << "¡Has vencido a un Maestro! Ganaste 5 puntos." << endl;
+                                                        } else {
+                                                            // Es un aprendiz o no tiene aprendices
+                                                            battleResult = 3;
+                                                            cout << "Has vencido a un Aprendiz o a un guardián sin aprendices. Ganaste 3 puntos." << endl;
+                                                        }
                                                     }
                                                     if (battleResult != 0) {
                                                         actualizarNivelDePoder(chosenGuardian, battleResult);
@@ -614,11 +616,6 @@ int main() {
                                                 } else {
                                                     battleResult = -1;
                                                     cout << "Has sido derrotado. No ganaste puntos en esta batalla." << endl;
-                                                }
-
-                                                if (battleResult != 0) {
-                                                    actualizarNivelDePoder(chosenGuardian, battleResult);
-                                                    cout << "El poder del guardian " << chosenGuardian.name << " ahora es: " << chosenGuardian.powerLevel << endl;
                                                 }
 
                                                 break;
