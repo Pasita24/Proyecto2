@@ -41,18 +41,24 @@ void bstInsert(Node*& root, const Guardian& guardian) {
         bstInsert(root->right, guardian);
     }
 }
-//Funcion que imprime guardianes que tienen entre 90 y 99
-void printDescendingPower(Node* root) {
-    if (root == nullptr) return;
+void printDescendingPower(Node* root, int& count, int& kingdomCount) {
+    if (root == nullptr || count == 0) return;
 
-    printDescendingPower(root->right);
-    
-    // Agregar condición para imprimir solo guardianes con poder entre 90 y 99
+    printDescendingPower(root->right, count, kingdomCount);
+
     if (root->guardian.powerLevel >= 90 && root->guardian.powerLevel <= 100) {
-        cout << "Nombre: " << root->guardian.name << ", Nivel de Poder: " << root->guardian.powerLevel << endl;
+        if (kingdomCount < 3) {
+            cout << "Guardian del Reino - Nombre: " << root->guardian.name << ", Nivel de Poder: " << root->guardian.powerLevel << endl;
+            kingdomCount++;
+        } else {
+            if (count > 0) {
+                cout << "Guardian Candidato a Reino - Nombre: " << root->guardian.name << ", Nivel de Poder: " << root->guardian.powerLevel << endl;
+                count--;
+            }
+        }
     }
-    
-    printDescendingPower(root->left);
+
+    printDescendingPower(root->left, count, kingdomCount);
 }
 void actualizarNivelDePoder(Guardian& guardian, int battleResult) {
     if (battleResult > 0) {
@@ -100,6 +106,18 @@ public:
 
         cout << "Conexion agregada: " << src << " <-> " << dest << " con peso: " << weight << endl;
     }
+    void removeEdge(const string& src, const string& dest) {
+    int srcIndex = getIndex(src);
+    int destIndex = getIndex(dest);
+
+    if (adjacencyMatrix[srcIndex][destIndex] != 0 && adjacencyMatrix[destIndex][srcIndex] != 0) {
+        adjacencyMatrix[srcIndex][destIndex] = 0;
+        adjacencyMatrix[destIndex][srcIndex] = 0;
+        cout << "Conexion eliminada: " << src << " <-> " << dest << endl;
+    } else {
+        cout << "No hay conexion entre " << src << " y " << dest << " para eliminar." << endl;
+    }
+}
     Node* deleteNodeFromBST(Node* root, const Guardian& guardian) {
     if (root == nullptr) {
         return root;
@@ -421,12 +439,17 @@ int main() {
 
         switch (choice) {
             case 1:
-                // Ver la lista de candidatos (Guardianes)
-                cout<<"----------------------------------"<<endl;
+            {
+                const int NUM_GUARDIANS_DEL_REINO = 3;
+                cout << "----------------------------------" << endl;
+                cout << "Ranking del Reino" << endl;
                 cout << "Guardianes ordenados por nivel de poder (de mayor a menor):" << endl;
-                printDescendingPower(powerTree);
-                cout<<"----------------------------------"<<endl;
+                int count = NUM_GUARDIANS_DEL_REINO;
+                int kingdomCount = 0;
+                printDescendingPower(powerTree, count, kingdomCount);
+                cout << "----------------------------------" << endl;
                 break;
+            }
             case 2:
                 cout << "Guardianes disponibles:" << endl;
                 for (int i = 0; i < guardians.size(); ++i) {
@@ -454,7 +477,8 @@ int main() {
             cout << "1. Ver la lista de ciudades y sus conexiones" << endl;
             cout << "2. Conocer las conexiones de una ciudad especifica" << endl;
             cout << "3. Conocer conexiones entre ciudades"<< endl;
-            cout << "3. Agregar nuevas conexiones entre ciudades"<< endl;
+            cout << "4. Agregar nuevas conexiones entre ciudades"<< endl;
+            cout << "5. Eliminar conexiones entre ciudades"<< endl;
 
             int kingdomChoice;
             cout << "Ingresa tu eleccion: ";
@@ -525,6 +549,29 @@ int main() {
                         cin >> weight;
 
                         graph.addEdge(cityA, cityB, weight);
+                    } else {
+                        cout << "Numero de ciudad(es) invalido(s)." << endl;
+                    }
+                }
+                else if (kingdomChoice == 5) {
+                    cout << "Eliminar una conexion entre ciudades" << endl;
+
+                    cout << "Ciudades disponibles:" << endl;
+                    for (size_t i = 0; i < graph.getNumberOfCities(); ++i) {
+                        cout << i + 1 << ". " << graph.getCityName(i) << endl;
+                    }
+
+                    int cityNumberA, cityNumberB;
+                    cout << "Ingresa el numero de la primera ciudad: ";
+                    cin >> cityNumberA;
+                    cout << "Ingresa el numero de la segunda ciudad: ";
+                    cin >> cityNumberB;
+
+                    if (cityNumberA >= 1 && cityNumberA <= graph.getNumberOfCities() &&
+                        cityNumberB >= 1 && cityNumberB <= graph.getNumberOfCities()) {
+                        string cityA = graph.getCityName(cityNumberA - 1);
+                        string cityB = graph.getCityName(cityNumberB - 1);
+                        graph.removeEdge(cityA, cityB);
                     } else {
                         cout << "Numero de ciudad(es) invalido(s)." << endl;
                     }
@@ -641,9 +688,9 @@ int main() {
                                                         } else {
                                                             battleResult = 3; // Puntos al vencer a un Aprendiz
                                                         }
-                                                        cout << "------------->Has ganado la batalla contra " << chosenGuardian.name << "<--------------------- " << endl;
+                                                        cout << "-------------> Has ganado la batalla "<< "<--------------------- " << endl;
                                                     } else {
-                                                        cout << "-------------->Has perdido la batalla contra " << chosenGuardian.name << "<--------------------- " << endl;
+                                                        cout << "--------------> Has perdido la batalla " << "<--------------------- " << endl;
                                                         battleResult = -1; // Puntos al perder la batalla
                                                     }
 
