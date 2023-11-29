@@ -66,3 +66,6 @@ Carga de Datos: Lee dos archivos (Ciudades.txt y Guardianes.txt) que contienen i
 ### Mostrar Información de Guardianes en una Ciudad:
 - Selección de Ciudad: El usuario elige la ciudad de interés.
 - Impresión de Información: Se muestra información sobre los guardianes en esa ciudad, incluyendo el maestro y sus aprendices, si existen, utilizando la función printGuardiansInCity del grafo.
+
+  # Enlace a video a YouTube
+  - https://youtu.be/4ewCoQLqv1A
