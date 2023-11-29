@@ -1,5 +1,5 @@
 # The Guardians Battles
-##Descripción
+## Descripción
 Este proyecto implementa un juego llamado "The Guardians Battles" donde los guardianes son héroes con habilidades únicas que protegen las ciudades en la tierra. Los guardianes pueden mejorar sus habilidades a través de batallas y ascender en el ranking para convertirse en Guardianes del Reino.
 
 ## Estructuras de Datos Utilizadas
