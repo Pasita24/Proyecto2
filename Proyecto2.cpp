@@ -68,6 +68,17 @@ void actualizarNivelDePoder(Guardian& guardian, int battleResult) {
         guardian.powerLevel -= abs(battleResult);
     }
 }
+ bool esMaestro(const Guardian& guardian, Node* powerTree) {
+    if (powerTree == nullptr) {
+        return false; // Si el árbol está vacío, no puede ser maestro ni aprendiz
+    }
+
+    if (guardian.name == powerTree->guardian.name) {
+        return powerTree->left != nullptr || powerTree->right != nullptr;
+    }
+
+    return esMaestro(guardian, powerTree->left) || esMaestro(guardian, powerTree->right);
+    }
 
 class UndirectedGraph {
 private:
@@ -297,14 +308,12 @@ public:
                     // Lógica para pelear con el Maestro
                     cout << "Has elegido pelear contra el Maestro: " << cityGuardianTree->guardian.name << "!" << endl;
                     // Asignar puntos al elegir pelear contra el Maestro
-                    battleResult = 5;
                     chosenGuardian = cityGuardianTree->guardian;
                 } else {
                     // Lógica para pelear con el Aprendiz
                     chosenGuardian = cityGuardianTree->apprentices[chosenOpponentIndex - 2]->guardian;
                     cout << "¡Has elegido pelear contra: " << chosenGuardian.name << "!" << endl;
-                    // Asignar puntos al elegir pelear contra un Aprendiz
-                    battleResult = 3;
+                    
                 }
             } else {
                 cout << "Número de guardián no válido." << endl;
@@ -313,6 +322,9 @@ public:
             cout << "No hay guardianes en esta ciudad." << endl;
         }
     }
+   
+
+
     private:
         // Función para insertar un aprendiz bajo un maestro en el árbol general
         void addApprentice(GuardianTreeNode* master, GuardianTreeNode* apprentice) {
@@ -624,7 +636,7 @@ int main() {
                                                  graph.printGuardiansInCityWithOpponent(chosenGuardian.city, guardians, powerTree);
                                                  // Determinar la probabilidad de ganar la batalla                                                 
                                                     if (wonBattle) {
-                                                        if (chosenGuardian.master == "Maestro") {
+                                                         if (esMaestro(chosenGuardian, powerTree)) {
                                                             battleResult = 5; // Puntos al vencer a un Maestro
                                                         } else {
                                                             battleResult = 3; // Puntos al vencer a un Aprendiz
