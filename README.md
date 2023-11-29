@@ -57,9 +57,9 @@ Carga de Datos: Lee dos archivos (Ciudades.txt y Guardianes.txt) que contienen i
 
 ### Consulta de Caminos del Reino:
 - Opciones de Consulta: Permite conocer las conexiones entre ciudades de diferentes maneras:
--- Mostrar todas las ciudades y sus conexiones.
--- Conocer las conexiones de una ciudad específica.
--- Verificar si dos ciudades están directamente conectadas.
+1. Mostrar todas las ciudades y sus conexiones.
+2. Conocer las conexiones de una ciudad específica.
+3. Verificar si dos ciudades están directamente conectadas.
 ### Consulta de Ciudades:
 - Menú de Opciones: Ofrece la posibilidad de listar todas las ciudades disponibles.
 - Mostrar Conexiones de una Ciudad: Permite al usuario seleccionar una ciudad y ver sus conexiones con otras ciudades, utilizando la función printCityConnections del grafo.
